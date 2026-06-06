@@ -1,0 +1,71 @@
+<div class="auth-container">
+  <div class="glass-panel auth-card">
+    <h2 class="text-gradient">Create Account</h2>
+    <p class="subtitle">Join RecruitAI today</p>
+
+    <div *ngIf="error" class="error-banner">
+      {{ error }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+      
+      <div class="form-group">
+        <label for="role">I am a...</label>
+        <select 
+          id="role" 
+          name="role" 
+          class="form-control" 
+          [(ngModel)]="user.role" 
+          required>
+          <option value="CANDIDATE">Candidate looking for jobs</option>
+          <option value="RECRUITER">Recruiter hiring talent</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          class="form-control" 
+          [(ngModel)]="user.name" 
+          required 
+          placeholder="John Doe">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="form-control" 
+          [(ngModel)]="user.email" 
+          required 
+          placeholder="name@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-control" 
+          [(ngModel)]="user.password" 
+          required 
+          placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn-primary w-100 mt-4" [disabled]="loading || !registerForm.valid">
+        <span *ngIf="loading">Creating account...</span>
+        <span *ngIf="!loading">Create Account</span>
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/login" class="text-gradient">Sign in</a>
+    </p>
+  </div>
+</div>

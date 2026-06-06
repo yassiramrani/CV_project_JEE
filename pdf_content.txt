@@ -1,0 +1,275 @@
+Projet JEE – Plateforme Intelligente de
+Recrutement Basée sur l'IA
+1. Contexte du Projet
+Le recrutement est un processus long qui nécessite l'analyse de nombreuses candidatures et CV. Les
+entreprises ont besoin d'outils permettant d'automatiser la présélection des candidats et de faciliter la
+gestion des offres d'emploi.
+Ce projet vise à développer une plateforme web de recrutement basée sur Java EE permettant aux
+recruteurs de publier des offres d'emploi et aux candidats de postuler en ligne. Une fonctionnalité
+d'intelligence artificielle sera intégrée afin d'analyser les CV et de calculer automatiquement un score de
+compatibilité entre les candidats et les offres.
+
+2. Objectifs du Projet
+La plateforme devra permettre :
+• Gestion des utilisateurs et authentification.
+• Gestion des rôles (Administrateur, Recruteur, Candidat).
+• Publication et gestion des offres d'emploi.
+• Dépôt des candidatures.
+• Téléversement des CV au format PDF.
+• Analyse automatique des compétences présentes dans le CV.
+• Calcul d'un score de compatibilité entre un candidat et une offre.
+• Classement automatique des candidats.
+• Consultation de statistiques simples via un tableau de bord.
+
+3. Technologies Utilisées
+Backend
+• Jakarta EE (Java EE)
+• JAX-RS (REST API)
+• JPA / Hibernate
+• CDI
+• Bean Validation
+
+1
+
+Frontend
+• Angular
+
+Base de données
+• PostgreSQL
+
+Intelligence Artificielle
+• Python
+• FastAPI
+• pdfplumber
+• spaCy
+
+Outils
+• Git & GitHub
+• Postman
+• Maven
+
+4. Acteurs du Système
+Administrateur
+• Gérer les utilisateurs.
+• Consulter les statistiques globales.
+
+Recruteur
+• Créer des offres d'emploi.
+• Modifier des offres.
+• Consulter les candidatures.
+• Consulter le classement des candidats.
+
+Candidat
+• Créer un compte.
+• Consulter les offres.
+• Déposer un CV.
+• Postuler à une offre.
+• Consulter ses candidatures.
+
+2
+
+5. Fonctionnalités Principales
+Module 1 : Authentification
+Fonctionnalités :
+• Inscription.
+• Connexion.
+• Gestion des rôles.
+• Sécurisation des accès.
+Rôles :
+• ADMIN
+• RECRUITER
+• CANDIDATE
+
+Module 2 : Gestion des Offres
+Le recruteur pourra :
+• Créer une offre.
+• Modifier une offre.
+• Supprimer une offre.
+• Consulter ses offres.
+Le candidat pourra :
+• Consulter les offres.
+• Rechercher une offre.
+
+Module 3 : Gestion des Candidatures
+Le candidat pourra :
+• Postuler à une offre.
+Le recruteur pourra :
+• Consulter les candidatures reçues.
+• Consulter les scores des candidats.
+
+3
+
+Statuts possibles :
+• PENDING
+• ACCEPTED
+• REJECTED
+
+Module 4 : Gestion des CV
+Fonctionnalités :
+• Téléversement d'un CV PDF.
+• Stockage du fichier.
+• Consultation du CV.
+
+Module 5 : Analyse des CV (IA)
+Le système analysera automatiquement le CV afin d'extraire :
+• Les compétences.
+• Les expériences.
+• Les certifications éventuelles.
+Exemple :
+CV :
+Java, Spring Boot, Docker, PostgreSQL
+Résultat :
+Compétences détectées :
+• Java
+• Spring Boot
+• Docker
+• PostgreSQL
+
+Module 6 : Matching et Classement Intelligent
+Après analyse du CV, le système comparera les compétences du candidat avec celles demandées dans
+l'offre.
+
+4
+
+Exemple :
+Offre :
+• Java
+• Spring Boot
+• Docker
+• MySQL
+CV :
+• Java
+• Spring Boot
+• Docker
+Score obtenu :
+75 %
+Le système classera automatiquement les candidats du meilleur au moins pertinent.
+Exemple :
+1. Ahmed → 92 %
+2. Sara → 85 %
+3. Ali → 70 %
+
+Module 7 : Tableau de Bord
+Le tableau de bord affichera :
+• Nombre total d'utilisateurs.
+• Nombre total d'offres.
+• Nombre total de candidatures.
+• Compétences les plus recherchées.
+
+6. Entités Principales
+User
+• id
+• firstName
+• lastName
+
+5
+
+• email
+• password
+• role
+
+Candidate
+• phone
+• address
+
+Recruiter
+• companyName
+
+JobOffer
+• id
+• title
+• description
+• location
+• requiredSkills
+• createdAt
+
+CV
+• id
+• fileName
+• filePath
+• uploadDate
+
+Application
+• id
+• applicationDate
+• status
+• score
+
+Skill
+• id
+• name
+
+7. Architecture Générale
+Frontend Angular
+
+6
+
+↓
+API REST Jakarta EE
+↓
+PostgreSQL
+↓
+Microservice Python (Analyse CV)
+Le microservice Python sera responsable de :
+• L'extraction du texte des CV.
+• La détection des compétences.
+• Le calcul du score de compatibilité.
+
+8. Répartition du Travail
+Étudiant 1 – Backend Java EE
+• Configuration du projet.
+• Authentification.
+• Gestion utilisateurs.
+• Gestion offres.
+• Gestion candidatures.
+• API REST.
+• Base de données.
+
+Étudiant 2 – Frontend Angular & IA
+• Interfaces Angular.
+• Upload des CV.
+• Intégration API.
+• Analyse CV.
+• Matching des compétences.
+• Tableau de bord.
+
+7
+
+9. Planning sur 4 Semaines
+Semaine 1
+• Analyse des besoins.
+• Diagrammes UML.
+• Conception base de données.
+• Initialisation du projet.
+
+Semaine 2
+• Authentification.
+• Gestion utilisateurs.
+• Gestion offres.
+
+Semaine 3
+• Gestion candidatures.
+• Upload CV.
+• Intégration base de données.
+
+Semaine 4
+• Analyse CV.
+• Matching IA.
+• Dashboard.
+• Tests et corrections.
+
+10. Résultat Attendu
+À la fin du projet, la plateforme devra permettre :
+• La publication d'offres d'emploi.
+• La gestion des candidatures.
+• Le dépôt de CV.
+• L'analyse automatique des compétences.
+• Le calcul d'un score de compatibilité.
+• Le classement intelligent des candidats.
+• La visualisation de statistiques de recrutement.
+Le principal apport innovant du projet sera l'intégration de l'intelligence artificielle pour assister les
+recruteurs dans la sélection des candidats les plus pertinents.
+
+8
+
+

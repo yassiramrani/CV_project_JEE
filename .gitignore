@@ -1,0 +1,23 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Python
+python-ai-service/venv/
+python-ai-service/__pycache__/
+*.pyc
+
+# OS
+.DS_Store
