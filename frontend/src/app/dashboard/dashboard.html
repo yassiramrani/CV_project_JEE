@@ -1,136 +1,576 @@
-<div class="dashboard-header">
-  <h2 class="text-gradient">Welcome to your Dashboard</h2>
-  <button class="btn-primary logout-btn" (click)="logout()">Logout</button>
-</div>
-
-<!-- ========================= -->
-<!-- RECRUITER DASHBOARD       -->
-<!-- ========================= -->
-<div *ngIf="role === 'RECRUITER'" class="dashboard-grid">
-  
-  <div class="glass-panel">
-    <h3>Post a New Job</h3>
-    <form (ngSubmit)="createJob()" #jobForm="ngForm">
-      <div class="form-group">
-        <label>Job Title</label>
-        <input type="text" class="form-control" [(ngModel)]="newJob.title" name="title" required>
+<div class="dashboard-container">
+  <!-- ========================= -->
+  <!-- SIDEBAR NAVIGATION        -->
+  <!-- ========================= -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
       </div>
-      <div class="form-group">
-        <label>Description</label>
-        <textarea class="form-control" [(ngModel)]="newJob.description" name="description" required rows="3"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Required Skills (comma separated)</label>
-        <input type="text" class="form-control" [(ngModel)]="newJob.requiredSkills" name="skills" required placeholder="Java, Angular, SQL">
-      </div>
-      <button type="submit" class="btn-primary" [disabled]="!jobForm.valid">Post Job</button>
-    </form>
-  </div>
-
-  <div class="glass-panel jobs-list">
-    <h3>Your Posted Jobs & Applicants</h3>
-    <div *ngIf="jobs.length === 0" class="empty-state">No jobs posted yet.</div>
+      <span class="brand-text">Recruit<span class="text-gradient">AI</span></span>
+    </div>
     
-    <div *ngFor="let job of jobs" class="job-card">
-      <div class="job-header">
-        <h4>{{ job.title }}</h4>
-        <button class="btn-danger" (click)="deleteJob(job.id)">Delete</button>
+    <div class="user-profile-badge">
+      <div class="avatar">
+        {{ role ? role.charAt(0) : 'U' }}
       </div>
-      <p class="job-desc">{{ job.description }}</p>
-      <div class="skills-tags">
-        <span class="tag" *ngFor="let skill of job.requiredSkills">{{ skill }}</span>
-      </div>
-
-      <div class="applicants-section">
-        <h5>Applicants ({{ jobApplications[job.id]?.length || 0 }})</h5>
-        <div class="applicant-card" *ngFor="let app of jobApplications[job.id]" style="display: block;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span class="applicant-name">{{ app.candidate?.firstName }} {{ app.candidate?.lastName }}</span>
-            <span class="applicant-score" [class.high-score]="app.score > 70" [class.low-score]="app.score < 40">
-              AI Score: {{ app.score }}%
-            </span>
-          </div>
-          <div *ngIf="app.aiStrongestPoints" style="font-size: 0.9em; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-top: 5px; margin-bottom: 10px;">
-            <strong style="color: #9d4edd;">✨ AI Analysis:</strong> {{ app.aiStrongestPoints }}
-          </div>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <span class="badge status-badge" 
-                  [ngClass]="{'status-pending': app.status === 'PENDING', 'status-accepted': app.status === 'ACCEPTED', 'status-rejected': app.status === 'REJECTED'}">
-              {{ app.status }}
-            </span>
-            <div style="flex-grow: 1;"></div>
-            <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.8em;" (click)="downloadCv(app.candidate?.id)">📄 Download CV</button>
-            <button class="btn-success" style="padding: 5px 10px; font-size: 0.8em;" *ngIf="app.status === 'PENDING'" (click)="updateStatus(app.id, 'ACCEPTED')">Accept</button>
-            <button class="btn-danger" style="padding: 5px 10px; font-size: 0.8em;" *ngIf="app.status === 'PENDING'" (click)="updateStatus(app.id, 'REJECTED')">Reject</button>
-          </div>
-        </div>
+      <div class="user-info">
+        <span class="username">{{ role === 'RECRUITER' ? 'Recruteur' : 'Candidat' }}</span>
+        <span class="user-role">Accès Table de Bord</span>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ========================= -->
-<!-- CANDIDATE DASHBOARD       -->
-<!-- ========================= -->
-<div *ngIf="role === 'CANDIDATE'" class="dashboard-grid">
-  
-  <div class="glass-panel">
-    <h3>Your Profile</h3>
-    <div class="cv-upload-zone" [class.uploaded]="cvUploaded">
-      <p *ngIf="!cvUploaded">Upload your CV (PDF) to get matched with jobs!</p>
-      
-      <div *ngIf="cvUploaded" class="cv-info">
-        <p class="text-success" style="font-weight: bold;">✅ CV Uploaded: {{ myCv?.fileName }}</p>
-        <div *ngIf="myCv?.aiImprovements" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; border-left: 4px solid #9d4edd;">
-          <h4 style="color: #9d4edd; margin-top: 0;">💡 AI Recommendations to Improve Your CV</h4>
-          <p style="white-space: pre-wrap; font-size: 0.9em; line-height: 1.5; color: #ddd;">{{ myCv.aiImprovements }}</p>
-        </div>
-      </div>
+    <nav class="sidebar-menu">
+      <!-- Recruiter Sidebar Links -->
+      <ng-container *ngIf="role === 'RECRUITER'">
+        <button class="nav-item" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Vue d'ensemble
+        </button>
+        <button class="nav-item" [class.active]="activeTab === 'post-job'" (click)="setTab('post-job')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 5v14M5 12h14"/></svg>
+          Publier un emploi
+        </button>
+        <button class="nav-item" [class.active]="activeTab === 'jobs'" (click)="setTab('jobs')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          Offres & Candidatures
+        </button>
+      </ng-container>
 
-      <input type="file" id="cvFile" (change)="onFileSelected($event)" accept=".pdf" style="margin-top: 15px;">
-      <label for="cvFile" class="btn-primary file-label" [class.disabled]="uploading" style="margin-top: 15px;">
-        {{ uploading ? 'Processing with AI...' : (cvUploaded ? 'Update CV' : 'Choose PDF File') }}
-      </label>
+      <!-- Candidate Sidebar Links -->
+      <ng-container *ngIf="role === 'CANDIDATE'">
+        <button class="nav-item" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Vue d'ensemble
+        </button>
+        <button class="nav-item" [class.active]="activeTab === 'cv'" (click)="setTab('cv')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Mon CV & Analyse IA
+        </button>
+        <button class="nav-item" [class.active]="activeTab === 'jobs'" (click)="setTab('jobs')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+          Offres d'emploi
+        </button>
+        <button class="nav-item" [class.active]="activeTab === 'applications'" (click)="setTab('applications')">
+          <svg viewBox="0 0 24 24" class="nav-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Mes Candidatures
+        </button>
+      </ng-container>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()">
+        <svg viewBox="0 0 24 24" class="logout-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Se déconnecter
+      </button>
     </div>
+  </aside>
 
-    <h3 style="margin-top: 2rem;">My Applications</h3>
-    <div *ngIf="myApplications.length === 0" class="empty-state">You haven't applied to any jobs yet.</div>
-    <div class="my-application-card" *ngFor="let app of myApplications">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h4 style="margin: 0; color: #e2e8f0;">{{ app.jobOffer?.title }}</h4>
-        <span class="badge status-badge" 
-              [ngClass]="{'status-pending': app.status === 'PENDING', 'status-accepted': app.status === 'ACCEPTED', 'status-rejected': app.status === 'REJECTED'}">
-          {{ app.status }}
+  <!-- ========================= -->
+  <!-- MAIN CONTENT AREA         -->
+  <!-- ========================= -->
+  <main class="main-content">
+    
+    <!-- Header -->
+    <header class="content-header">
+      <div>
+        <span class="breadcrumb">RecruitAI &gt; Dashboard &gt; {{ activeTab }}</span>
+        <h2 class="page-title text-gradient">
+          <span *ngIf="activeTab === 'overview'">Tableau de bord global</span>
+          <span *ngIf="activeTab === 'post-job'">Créer une offre d'emploi</span>
+          <span *ngIf="activeTab === 'jobs'">Offres d'emploi disponibles</span>
+          <span *ngIf="activeTab === 'cv'">Votre Profil & Analyse de CV</span>
+          <span *ngIf="activeTab === 'applications'">Suivi de vos Candidatures</span>
+        </h2>
+      </div>
+      <div class="header-actions">
+        <span class="live-indicator">
+          <span class="pulse-dot"></span>
+          Serveur Live
         </span>
       </div>
-      <div class="applicant-score" [class.high-score]="app.score > 70" [class.low-score]="app.score < 40" style="display: inline-block; margin-bottom: 10px;">
-        AI Match Score: <strong>{{ app.score }}%</strong>
-      </div>
-      <div *ngIf="app.aiStrongestPoints" style="font-size: 0.9em; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 10px; color: #ddd;">
-        <strong style="color: #9d4edd;">✨ AI Feedback:</strong> {{ app.aiStrongestPoints }}
-      </div>
-      <p style="font-size: 0.85em; color: #aaa; margin-top: 8px;" *ngIf="app.applicationDate">Applied on: {{ app.applicationDate | date:'mediumDate' }}</p>
-    </div>
-  </div>
+    </header>
 
-  <div class="glass-panel jobs-list">
-    <h3>Available Job Offers</h3>
-    <div *ngIf="jobs.length === 0" class="empty-state">No jobs available right now.</div>
-    
-    <div *ngFor="let job of jobs" class="job-card">
-      <div class="job-header">
-        <h4>{{ job.title }}</h4>
-        <button 
-          class="btn-primary" 
-          (click)="apply(job.id)" 
-          [disabled]="hasApplied(job.id) || applyingJobId === job.id">
-          {{ applyingJobId === job.id ? 'Applying...' : (hasApplied(job.id) ? 'Applied' : 'Apply Now') }}
-        </button>
+    <!-- ========================= -->
+    <!-- OVERVIEW TAB (RECRUITER)  -->
+    <!-- ========================= -->
+    <div *ngIf="role === 'RECRUITER' && activeTab === 'overview'" class="tab-panel">
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper purple">
+            <svg viewBox="0 0 24 24" class="stat-icon"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Offres Publiées</span>
+            <span class="stat-value">{{ recruiterStats.totalJobs }}</span>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon-wrapper blue">
+            <svg viewBox="0 0 24 24" class="stat-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Total Candidats</span>
+            <span class="stat-value">{{ recruiterStats.totalApplicants }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper yellow">
+            <svg viewBox="0 0 24 24" class="stat-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">En Attente</span>
+            <span class="stat-value">{{ recruiterStats.pendingCount }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper green">
+            <svg viewBox="0 0 24 24" class="stat-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Score de Compatibilité Moyen</span>
+            <span class="stat-value">{{ recruiterStats.averageScore }}%</span>
+          </div>
+        </div>
       </div>
-      <p class="job-desc">{{ job.description }}</p>
-      <div class="skills-tags">
-        <span class="tag" *ngFor="let skill of job.requiredSkills">{{ skill }}</span>
+
+      <!-- Quick overview metrics -->
+      <div class="dashboard-sections-grid">
+        <div class="glass-panel main-panel">
+          <div class="panel-header">
+            <h3>Candidats les plus qualifiés (IA)</h3>
+            <button class="btn-text-action" (click)="setTab('jobs')">Tout voir</button>
+          </div>
+
+          <div class="top-applicants-list">
+            <div *ngIf="recruiterStats.totalApplicants === 0" class="empty-state-card">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              <p>Aucune candidature n'a encore été soumise.</p>
+            </div>
+
+            <!-- List candidate items across all jobs to show top matches -->
+            <ng-container *ngFor="let job of jobs">
+              <div class="matching-candidate-row" *ngFor="let app of jobApplications[job.id]">
+                <div class="candidate-info-block">
+                  <div class="avatar mini">{{ app.candidate?.firstName?.charAt(0) }}{{ app.candidate?.lastName?.charAt(0) }}</div>
+                  <div>
+                    <span class="cand-name">{{ app.candidate?.firstName }} {{ app.candidate?.lastName }}</span>
+                    <span class="applied-for">Postule pour : <strong>{{ job.title }}</strong></span>
+                  </div>
+                </div>
+                
+                <div class="score-pill-container">
+                  <div class="score-progress-bar-wrapper">
+                    <span class="score-percentage">{{ app.score }}% match</span>
+                    <div class="score-progress-track">
+                      <div class="score-progress-fill" [style.width.%]="app.score" [class.high]="app.score >= 70" [class.medium]="app.score >= 40 && app.score < 70" [class.low]="app.score < 40"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="status-col">
+                  <span class="badge status-badge" [ngClass]="{'status-pending': app.status === 'PENDING', 'status-accepted': app.status === 'ACCEPTED', 'status-rejected': app.status === 'REJECTED'}">
+                    {{ app.status }}
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="glass-panel sidebar-panel">
+          <h3>Raccourcis rapides</h3>
+          <div class="shortcut-buttons">
+            <button class="shortcut-btn" (click)="setTab('post-job')">
+              <span class="icon-circle"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+              Publier un emploi
+            </button>
+            <button class="shortcut-btn" (click)="setTab('jobs')">
+              <span class="icon-circle"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+              Consulter les CV
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- ========================= -->
+    <!-- OVERVIEW TAB (CANDIDATE)  -->
+    <!-- ========================= -->
+    <div *ngIf="role === 'CANDIDATE' && activeTab === 'overview'" class="tab-panel">
+      <!-- Candidate Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper purple">
+            <svg viewBox="0 0 24 24" class="stat-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Candidatures Soumises</span>
+            <span class="stat-value">{{ candidateStats.appliedCount }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper green">
+            <svg viewBox="0 0 24 24" class="stat-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Candidatures Acceptées</span>
+            <span class="stat-value">{{ candidateStats.acceptedCount }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper yellow">
+            <svg viewBox="0 0 24 24" class="stat-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">En cours d'étude</span>
+            <span class="stat-value">{{ candidateStats.pendingCount }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper blue">
+            <svg viewBox="0 0 24 24" class="stat-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Match Score Moyen</span>
+            <span class="stat-value">{{ candidateStats.averageScore }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Overview Details -->
+      <div class="dashboard-sections-grid">
+        <div class="glass-panel main-panel">
+          <div class="panel-header">
+            <h3>Dernières candidatures</h3>
+            <button class="btn-text-action" (click)="setTab('applications')">Toutes les candidatures</button>
+          </div>
+
+          <div class="top-applicants-list">
+            <div *ngIf="myApplications.length === 0" class="empty-state-card">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              <p>Vous n'avez pas encore postulé à des offres. Téléchargez votre CV pour commencer.</p>
+            </div>
+
+            <div class="matching-candidate-row" *ngFor="let app of myApplications | slice:0:3">
+              <div class="candidate-info-block">
+                <div class="avatar mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+                <div>
+                  <span class="cand-name">{{ app.jobOffer?.title }}</span>
+                  <span class="applied-for">Postulé le : {{ app.applicationDate | date:'mediumDate' }}</span>
+                </div>
+              </div>
+              
+              <div class="score-pill-container">
+                <div class="score-progress-bar-wrapper">
+                  <span class="score-percentage">{{ app.score }}% match</span>
+                  <div class="score-progress-track">
+                    <div class="score-progress-fill" [style.width.%]="app.score" [class.high]="app.score >= 70" [class.medium]="app.score >= 40 && app.score < 70" [class.low]="app.score < 40"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="status-col">
+                <span class="badge status-badge" [ngClass]="{'status-pending': app.status === 'PENDING', 'status-accepted': app.status === 'ACCEPTED', 'status-rejected': app.status === 'REJECTED'}">
+                  {{ app.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel sidebar-panel">
+          <h3>Statut de votre profil</h3>
+          <div class="profile-card-summary">
+            <div class="cv-status-badge-inline" [class.valid]="cvUploaded">
+              <div class="indicator-circle"></div>
+              <span>{{ cvUploaded ? 'CV Analysé par l\'IA' : 'CV Manquant' }}</span>
+            </div>
+            <p *ngIf="cvUploaded" class="cv-filename">{{ myCv?.fileName }}</p>
+            <p *ngIf="!cvUploaded" class="cv-helper-text">Ajoutez un CV PDF pour que l'IA puisse matcher vos compétences avec les offres.</p>
+            
+            <button class="btn-primary w-full mt-4" (click)="setTab('cv')">
+              {{ cvUploaded ? 'Gérer mon CV' : 'Importer mon CV' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- POST A JOB (RECRUITER)   -->
+    <!-- ========================= -->
+    <div *ngIf="role === 'RECRUITER' && activeTab === 'post-job'" class="tab-panel">
+      <div class="glass-panel max-w-2xl mx-auto">
+        <h3 class="panel-title">Créer une offre d'emploi</h3>
+        <p class="panel-subtitle">Spécifiez les compétences demandées pour que l'IA puisse évaluer précisément les candidats.</p>
+        
+        <form (ngSubmit)="createJob()" #jobForm="ngForm" class="modern-form">
+          <div class="form-group">
+            <label>Intitulé du poste</label>
+            <input type="text" class="form-control" [(ngModel)]="newJob.title" name="title" required placeholder="Ex: Développeur Fullstack Angular/Java">
+          </div>
+          <div class="form-group">
+            <label>Description du poste</label>
+            <textarea class="form-control" [(ngModel)]="newJob.description" name="description" required rows="5" placeholder="Décrivez le rôle, les missions et le contexte d'équipe..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Compétences clés requises (séparées par des virgules)</label>
+            <input type="text" class="form-control" [(ngModel)]="newJob.requiredSkills" name="skills" required placeholder="Java, Spring Boot, Angular, REST, SQL">
+            <span class="input-hint">L'IA de RecruitAI scannera les CV sur la base exacte de ces mots-clés.</span>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!jobForm.valid">Publier l'offre d'emploi</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- OFFRES & CANDIDATURES (RECRUITER)       -->
+    <!-- ======================================= -->
+    <div *ngIf="role === 'RECRUITER' && activeTab === 'jobs'" class="tab-panel">
+      <div class="jobs-list-container">
+        <div *ngIf="jobs.length === 0" class="empty-state-card glass-panel">
+          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <h3>Aucun poste publié</h3>
+          <p>Commencez par publier un emploi pour recevoir des candidatures.</p>
+          <button class="btn-primary mt-4" (click)="setTab('post-job')">Publier mon premier emploi</button>
+        </div>
+
+        <div *ngFor="let job of jobs" class="job-card-premium glass-panel">
+          <div class="job-card-header">
+            <div>
+              <span class="job-badge">OFFRE ACTIVE</span>
+              <h3 class="job-card-title">{{ job.title }}</h3>
+            </div>
+            <button class="btn-icon-danger" (click)="deleteJob(job.id)" title="Supprimer l'offre">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+          </div>
+          <p class="job-card-desc">{{ job.description }}</p>
+          <div class="skills-tags-row">
+            <span class="tag" *ngFor="let skill of job.requiredSkills">{{ skill }}</span>
+          </div>
+
+          <!-- Applicants List under this Job -->
+          <div class="job-applicants-expansion">
+            <h4 class="applicants-header-title">
+              Candidatures reçues ({{ jobApplications[job.id]?.length || 0 }})
+            </h4>
+
+            <div *ngIf="!jobApplications[job.id] || jobApplications[job.id].length === 0" class="no-applicants-msg">
+              Aucune candidature soumise pour ce poste actuellement.
+            </div>
+
+            <div class="applicant-premium-card" *ngFor="let app of jobApplications[job.id]">
+              <div class="applicant-row-main">
+                <div class="applicant-meta-info">
+                  <div class="avatar mini font-bold">{{ app.candidate?.firstName?.charAt(0) }}{{ app.candidate?.lastName?.charAt(0) }}</div>
+                  <div>
+                    <span class="app-name">{{ app.candidate?.firstName }} {{ app.candidate?.lastName }}</span>
+                    <span class="app-email">{{ app.candidate?.email }}</span>
+                  </div>
+                </div>
+
+                <div class="score-section-badge" [class.high]="app.score >= 70" [class.medium]="app.score >= 40 && app.score < 70" [class.low]="app.score < 40">
+                  <div class="score-spark-icon">✨</div>
+                  <div class="score-text-val">
+                    <span class="val">{{ app.score }}%</span>
+                    <span class="lbl">Match IA</span>
+                  </div>
+                </div>
+
+                <div class="app-status-badge-container">
+                  <span class="badge status-badge" [ngClass]="{'status-pending': app.status === 'PENDING', 'status-accepted': app.status === 'ACCEPTED', 'status-rejected': app.status === 'REJECTED'}">
+                    {{ app.status }}
+                  </span>
+                </div>
+
+                <div class="applicant-actions">
+                  <button class="btn-outline-action" (click)="downloadCv(app.candidate?.id)">
+                    <svg viewBox="0 0 24 24" class="btn-svg-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Télécharger CV
+                  </button>
+                  <button class="btn-success-small" *ngIf="app.status === 'PENDING'" (click)="updateStatus(app.id, 'ACCEPTED')">
+                    Accepter
+                  </button>
+                  <button class="btn-danger-small" *ngIf="app.status === 'PENDING'" (click)="updateStatus(app.id, 'REJECTED')">
+                    Refuser
+                  </button>
+                </div>
+              </div>
+
+              <!-- AI Analysis box -->
+              <div class="ai-analysis-details-box" *ngIf="app.aiStrongestPoints">
+                <div class="ai-box-header">
+                  <div class="ai-title"><span class="magic-stars">✨</span> Rapport d'évaluation IA</div>
+                  <button class="btn-reanalyze" (click)="reanalyze(app.id)">
+                    <svg viewBox="0 0 24 24" class="reanalyze-svg"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Ré-analyser
+                  </button>
+                </div>
+                <p class="ai-content-text">{{ app.aiStrongestPoints }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- MON CV & ANALYSE IA (CANDIDATE)        -->
+    <!-- ======================================= -->
+    <div *ngIf="role === 'CANDIDATE' && activeTab === 'cv'" class="tab-panel">
+      <div class="glass-panel max-w-4xl mx-auto">
+        <h3 class="panel-title">Gestion de votre CV</h3>
+        <p class="panel-subtitle">Importez votre CV au format PDF. L'Intelligence Artificielle de RecruitAI l'analysera pour en extraire les compétences clés et vous proposer des conseils d'amélioration professionnels.</p>
+        
+        <div class="cv-dropzone-modern" [class.has-cv]="cvUploaded" (click)="!uploading && fileInput.click()">
+          <div class="dropzone-graphics">
+            <div class="upload-icon-wrapper" [class.spinning]="uploading">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+            </div>
+            
+            <div *ngIf="!cvUploaded && !uploading">
+              <h4>Glissez-déposez votre CV ici</h4>
+              <p>Format PDF uniquement. Taille max : 5 Mo.</p>
+            </div>
+            
+            <div *ngIf="uploading">
+              <h4>Analyse en cours par l'IA de Gemini...</h4>
+              <p>Extraction des compétences, structuration des données et rédaction de conseils personnalisés.</p>
+            </div>
+
+            <div *ngIf="cvUploaded && !uploading" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+              <h4 class="text-success-neon">✅ Votre CV a bien été importé</h4>
+              <p class="cv-filename-premium">{{ myCv?.fileName }}</p>
+              <p class="cv-date-premium">Mis à jour le : {{ myCv?.uploadDate | date:'mediumDate' }}</p>
+              <button type="button" class="btn-outline-action mt-4" (click)="downloadMyCv(); $event.stopPropagation()" style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; width: auto; font-size: 0.85rem; padding: 0.5rem 1rem; margin-top: 0.5rem;">
+                <svg viewBox="0 0 24 24" class="btn-svg-icon" style="width: 14px; height: 14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Voir / Télécharger mon CV
+              </button>
+            </div>
+          </div>
+
+          <input type="file" #fileInput id="cvFileUpload" (change)="onFileSelected($event)" accept=".pdf" style="display: none;">
+          <span class="btn-primary" [class.disabled]="uploading" style="display: inline-block;">
+            {{ uploading ? 'Traitement IA...' : (cvUploaded ? 'Remplacer mon CV PDF' : 'Sélectionner un fichier PDF') }}
+          </span>
+        </div>
+
+        <!-- AI Improvements box -->
+        <div class="ai-suggestions-panel-premium mt-8" *ngIf="cvUploaded && myCv?.aiImprovements">
+          <div class="ai-panel-header-premium">
+            <span class="sparkle-icon">💡</span>
+            <div>
+              <h4>Recommandations d'optimisation de RecruitAI</h4>
+              <p>Conseils personnalisés calculés automatiquement pour maximiser vos chances auprès des recruteurs.</p>
+            </div>
+          </div>
+          <div class="ai-suggestions-grid">
+            <div class="ai-suggestion-card" *ngFor="let suggestion of getParsedImprovements(); let i = index">
+              <div class="suggestion-num-badge">0{{ i + 1 }}</div>
+              <div class="suggestion-content">
+                <h5>{{ suggestion.title }}</h5>
+                <p>{{ suggestion.text }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- OFFRES D'EMPLOI DISPONIBLES (CANDIDATE) -->
+    <!-- ======================================= -->
+    <div *ngIf="role === 'CANDIDATE' && activeTab === 'jobs'" class="tab-panel">
+      <div class="jobs-list-container">
+        <div *ngIf="jobs.length === 0" class="empty-state-card glass-panel">
+          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+          <h3>Aucune offre d'emploi</h3>
+          <p>Il n'y a pas d'offre disponible sur la plateforme pour le moment.</p>
+        </div>
+
+        <div class="jobs-grid-two-cols">
+          <div *ngFor="let job of jobs" class="job-card-premium glass-panel">
+            <div class="job-card-header">
+              <div>
+                <span class="job-badge blue">OPPORTUNITÉ</span>
+                <h3 class="job-card-title">{{ job.title }}</h3>
+              </div>
+              <button 
+                class="btn-primary" 
+                (click)="apply(job.id)" 
+                [disabled]="hasApplied(job.id) || applyingJobId === job.id">
+                <svg viewBox="0 0 24 24" class="btn-svg-icon" *ngIf="!hasApplied(job.id) && applyingJobId !== job.id"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                {{ applyingJobId === job.id ? 'Candidature...' : (hasApplied(job.id) ? 'Déjà postulé' : 'Postuler maintenant') }}
+              </button>
+            </div>
+            
+            <p class="job-card-desc">{{ job.description }}</p>
+            
+            <div class="skills-tags-row">
+              <span class="tag" *ngFor="let skill of job.requiredSkills">{{ skill }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- MES CANDIDATURES (CANDIDATE)           -->
+    <!-- ======================================= -->
+    <div *ngIf="role === 'CANDIDATE' && activeTab === 'applications'" class="tab-panel">
+      <div class="jobs-list-container">
+        <div *ngIf="myApplications.length === 0" class="empty-state-card glass-panel">
+          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <h3>Aucune candidature</h3>
+          <p>Vous n'avez pas encore postulé aux offres de RecruitAI.</p>
+          <button class="btn-primary mt-4" (click)="setTab('jobs')">Parcourir les offres</button>
+        </div>
+
+        <div class="my-application-premium-card glass-panel" *ngFor="let app of myApplications">
+          <div class="application-premium-header">
+            <div>
+              <h3 class="app-offer-title">{{ app.jobOffer?.title }}</h3>
+              <p class="app-offer-date">Candidature envoyée le : {{ app.applicationDate | date:'mediumDate' }}</p>
+            </div>
+            <span class="badge status-badge" [ngClass]="{'status-pending': app.status === 'PENDING', 'status-accepted': app.status === 'ACCEPTED', 'status-rejected': app.status === 'REJECTED'}">
+              {{ app.status }}
+            </span>
+          </div>
+
+          <div class="app-premium-grid">
+            <!-- Score box -->
+            <div class="candidate-own-score-card" [class.high]="app.score >= 70" [class.medium]="app.score >= 40 && app.score < 70" [class.low]="app.score < 40">
+              <span class="score-title">Score de compatibilité IA</span>
+              <span class="score-value">{{ app.score }}%</span>
+              <div class="progress-bar-thin">
+                <div class="progress-fill" [style.width.%]="app.score"></div>
+              </div>
+            </div>
+
+            <!-- Feedback text -->
+            <div class="candidate-own-feedback-card" *ngIf="app.aiStrongestPoints">
+              <div class="feedback-title">✨ Analyse de compatibilité IA</div>
+              <p class="feedback-text">{{ app.aiStrongestPoints }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>

@@ -8,10 +8,11 @@ import java.util.Date;
 public class Application {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "application_date")
     private Date applicationDate;
 
     @Enumerated(EnumType.STRING)
@@ -20,7 +21,7 @@ public class Application {
 
     private Integer score;
 
-    @Column(length = 4000)
+    @Column(name = "ai_strongest_points", length = 4000)
     private String aiStrongestPoints;
 
     @ManyToOne

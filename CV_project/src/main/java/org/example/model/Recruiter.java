@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 @Table(name = "recruiters")
 public class Recruiter extends User {
 
+    @jakarta.persistence.Column(name = "company_name")
     private String companyName;
 
     public String getCompanyName() { return companyName; }

@@ -46,6 +46,10 @@ export class ApiService {
     return this.http.put(`${this.apiUrl}/applications/${applicationId}/status`, { status }, { headers: this.getHeaders() });
   }
 
+  reanalyzeApplication(applicationId: number) {
+    return this.http.post(`${this.apiUrl}/applications/${applicationId}/reanalyze`, {}, { headers: this.getHeaders() });
+  }
+
   // CV
   getMyCv() {
     return this.http.get(`${this.apiUrl}/cv/me`, { headers: this.getHeaders() });

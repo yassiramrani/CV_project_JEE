@@ -144,7 +144,7 @@ public class CVController {
     }
 
     @GET
-    @Secured({Role.RECRUITER})
+    @Secured({Role.RECRUITER, Role.CANDIDATE})
     @Path("/download/{candidateId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadCV(@PathParam("candidateId") Long candidateId) {

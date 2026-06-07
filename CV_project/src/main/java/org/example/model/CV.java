@@ -8,20 +8,24 @@ import java.util.Date;
 public class CV {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "file_name")
     private String fileName;
+
+    @Column(name = "file_path")
     private String filePath;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "upload_date")
     private Date uploadDate;
 
     @OneToOne
     @JoinColumn(name = "candidate_id", nullable = false)
     private Candidate candidate;
 
-    @Column(length = 4000)
+    @Column(name = "ai_improvements", length = 4000)
     private String aiImprovements;
 
     @PrePersist
