@@ -9,7 +9,7 @@ import java.util.List;
 public class JobOffer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
@@ -25,6 +25,7 @@ public class JobOffer {
     private List<String> requiredSkills;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at")
     private Date createdAt;
 
     @ManyToOne

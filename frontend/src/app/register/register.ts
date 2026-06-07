@@ -45,17 +45,8 @@ export class Register {
     
     this.authService.register(payload).subscribe({
       next: (res: any) => {
-        // Auto-login after successful registration
-        this.authService.login({ email: this.user.email, password: this.user.password }).subscribe({
-          next: (loginRes: any) => {
-            this.authService.setToken(loginRes.token);
-            this.router.navigate(['/dashboard']);
-          },
-          error: () => {
-            // Fallback to login page if auto-login fails
-            this.router.navigate(['/login']);
-          }
-        });
+        // Navigate to login page upon successful account creation
+        this.router.navigate(['/login'], { queryParams: { registered: 'true' } });
       },
       error: (err) => {
         this.error = err.error?.error || err.error?.message || 'Registration failed. Email might already exist.';

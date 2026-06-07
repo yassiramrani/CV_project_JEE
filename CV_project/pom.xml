@@ -26,11 +26,11 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- H2 Database (No installation required) -->
+    <!-- PostgreSQL JDBC Driver -->
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>2.2.224</version>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.3</version>
     </dependency>
 
     <!-- JWT Dependencies -->
@@ -72,10 +72,14 @@
       <plugin>
         <groupId>fish.payara.maven.plugins</groupId>
         <artifactId>payara-micro-maven-plugin</artifactId>
-        <version>2.2</version>
+        <version>2.4</version>
         <configuration>
-          <payaraVersion>6.2024.3</payaraVersion>
+          <payaraVersion>6.2025.2</payaraVersion>
           <deployWar>true</deployWar>
+          <javaCommandLineArguments>
+            <javaCommandLineArgument>-Xmx512m</javaCommandLineArgument>
+            <javaCommandLineArgument>-Xms256m</javaCommandLineArgument>
+          </javaCommandLineArguments>
         </configuration>
       </plugin>
     </plugins>

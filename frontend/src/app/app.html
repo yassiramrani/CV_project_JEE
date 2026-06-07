@@ -1,4 +1,4 @@
-<nav class="navbar">
+<nav class="navbar" *ngIf="!isDashboard()">
   <a routerLink="/" class="brand text-gradient">RecruitAI</a>
   <div class="nav-links">
     <a routerLink="/dashboard" class="nav-link" routerLinkActive="active">Dashboard</a>
@@ -7,6 +7,6 @@
   </div>
 </nav>
 
-<main class="main-content">
+<main [ngClass]="isDashboard() ? 'dashboard-layout' : 'main-content'">
   <router-outlet></router-outlet>
 </main>

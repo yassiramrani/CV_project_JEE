@@ -173,4 +173,73 @@ public class ApplicationController {
         }
         return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"Missing status\"}").build();
     }
+
+    @POST
+    @Path("/{id}/reanalyze")
+    @Secured({Role.RECRUITER, Role.CANDIDATE})
+    public Response reanalyze(@PathParam("id") Long id) {
+        Application app = applicationDao.findById(id);
+        if (app == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        CV cv = cvDao.findByCandidateId(app.getCandidate().getId());
+        JobOffer offer = app.getJobOffer();
+
+        if (cv != null && offer != null) {
+            try {
+                // Prepare JSON payload for Python Microservice
+                String skillsJson = "[]";
+                if (offer.getRequiredSkills() != null && !offer.getRequiredSkills().isEmpty()) {
+                    skillsJson = "[\"" + String.join("\",\"", offer.getRequiredSkills()) + "\"]";
+                }
+                
+                String payload = String.format("{\"file_path\":\"%s\", \"required_skills\":%s}", 
+                        cv.getFilePath().replace("\\", "/"), skillsJson);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("http://localhost:8000/analyze"))
+                        .header("Content-Type", "application/json")
+                        .timeout(Duration.ofSeconds(120))
+                        .POST(HttpRequest.BodyPublishers.ofString(payload))
+                        .build();
+
+                HttpClient client = HttpClient.newHttpClient();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    String body = response.body();
+                    // Parse "score"
+                    int scoreIndex = body.indexOf("\"score\":");
+                    if (scoreIndex != -1) {
+                        int commaIndex = body.indexOf(",", scoreIndex);
+                        int braceIndex = body.indexOf("}", scoreIndex);
+                        int endIdx = (commaIndex != -1 && commaIndex < braceIndex) ? commaIndex : braceIndex;
+                        String scoreStr = body.substring(scoreIndex + 8, endIdx).trim();
+                        app.setScore(Integer.parseInt(scoreStr));
+                    }
+                    // Parse "strongest_points"
+                    int pointsIndex = body.indexOf("\"strongest_points\":");
+                    if (pointsIndex != -1) {
+                        int startQuote = body.indexOf("\"", pointsIndex + 19);
+                        int endQuote = body.lastIndexOf("\"");
+                        if (startQuote != -1 && endQuote > startQuote) {
+                            String strongestPoints = body.substring(startQuote + 1, endQuote)
+                                    .replace("\\n", "\n")
+                                    .replace("\\\"", "\"");
+                            app.setAiStrongestPoints(strongestPoints);
+                        }
+                    }
+                    applicationDao.update(app);
+                    return Response.ok(app).build();
+                } else {
+                    return Response.status(Response.Status.BAD_GATEWAY).entity("{\"error\":\"AI service returned status " + response.statusCode() + "\"}").build();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+            }
+        }
+        return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"Missing CV or Job Offer\"}").build();
+    }
 }
