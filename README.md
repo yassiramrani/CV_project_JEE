@@ -79,7 +79,23 @@ Pour faire tourner le projet complet en local, il est nécessaire de démarrer *
 
 ---
 
-## 🤝 Ce qu'il reste à faire (Next Steps)
-- Migrer la configuration de la base de données de `H2` vers `PostgreSQL` (dans `persistence.xml`) pour avoir des données persistantes après les redémarrages du serveur.
-- Développer un système de Dashboard global pour l'**Administrateur** (Statistiques d'utilisation).
-- Améliorer la gestion des erreurs côté Frontend (ex: token expiré).
+## ⚙️ Migration PostgreSQL & Résolution CORS (Branche `aymane`)
+
+La migration de la base de données de **H2** (en mémoire) vers **PostgreSQL** (persistant) ainsi que la résolution des problèmes CORS ont été réalisées avec succès.
+
+### 1. Structure de la Base de Données (PostgreSQL)
+- **Nom de la base** : `recruit_ai`
+- **Schéma appliqué** : [schema_postgres.sql](file:///c:/Users/pc/Desktop/projet_jee/schema_postgres.sql)
+- **Ajustements de type** : Les colonnes `role` (table `app_users`) et `status` (table `applications`) ont été configurées en `VARCHAR(50)` standard au lieu de types ENUM personnalisés pour assurer une compatibilité native et transparente avec JPA sans erreurs de conversion de type.
+
+### 2. Configuration Backend (Java EE / Jakarta EE)
+- **Source de données** : Définie par programmation via l'annotation `@DataSourceDefinition` dans [JAXRSConfiguration.java](file:///c:/Users/pc/Desktop/projet_jee/CV_project/src/main/java/org/example/config/JAXRSConfiguration.java) pointant vers la base locale avec l'utilisateur `postgres`.
+- **Unité de persistance** : Configuration dans [persistence.xml](file:///c:/Users/pc/Desktop/projet_jee/CV_project/src/main/resources/META-INF/persistence.xml) pour utiliser EclipseLink `PostgreSQLPlatform`.
+- **Mappage Objet-Relationnel (ORM)** :
+  - Ajout des annotations `@Column(name = "...")` sur les champs en camelCase (`firstName`, `lastName`, `companyName`, `fileName`, etc.) pour correspondre précisément aux colonnes en snake_case de PostgreSQL (`first_name`, `last_name`, `company_name`, `file_name`).
+  - Changement de la stratégie de génération des clés primaires de `GenerationType.AUTO` à `GenerationType.IDENTITY` pour supporter l'auto-incrémentation native des colonnes de type `BIGSERIAL`.
+- **Dépendances** : Retrait complet de la dépendance H2 dans [pom.xml](file:///c:/Users/pc/Desktop/projet_jee/CV_project/pom.xml) et ajout du pilote JDBC PostgreSQL (`org.postgresql:postgresql`).
+
+### 3. Résolution du CORS (Sécurité)
+- Le fichier [CorsFilter.java](file:///c:/Users/pc/Desktop/projet_jee/CV_project/src/main/java/org/example/security/CorsFilter.java) a été restructuré en tant que filtre `@PreMatching` qui intercepte les requêtes `OPTIONS` de preflight et répond dynamiquement à l'origine du client (ex: `http://localhost:4200`) afin d'autoriser l'envoi de cookies et d'en-têtes de sécurité (`Access-Control-Allow-Credentials: true`).
+
