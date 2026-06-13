@@ -26,11 +26,11 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- PostgreSQL JDBC Driver -->
+    <!-- H2 In-Memory Database -->
     <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.7.3</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>2.2.224</version>
     </dependency>
 
     <!-- JWT Dependencies -->
@@ -79,6 +79,7 @@
           <javaCommandLineArguments>
             <javaCommandLineArgument>-Xmx512m</javaCommandLineArgument>
             <javaCommandLineArgument>-Xms256m</javaCommandLineArgument>
+            <javaCommandLineArgument>-Djava.net.preferIPv4Stack=true</javaCommandLineArgument>
           </javaCommandLineArguments>
         </configuration>
       </plugin>

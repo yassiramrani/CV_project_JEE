@@ -6,10 +6,10 @@ import jakarta.ws.rs.core.Application;
 
 @DataSourceDefinition(
     name = "java:app/jdbc/recruit_ai",
-    className = "org.postgresql.ds.PGSimpleDataSource",
-    url = "jdbc:postgresql://localhost:5432/recruit_ai",
-    user = "postgres",
-    password = "Ben3issa"
+    className = "org.h2.jdbcx.JdbcDataSource",
+    url = "jdbc:h2:mem:recruit_ai;DB_CLOSE_DELAY=-1",
+    user = "sa",
+    password = ""
 )
 @ApplicationPath("/api")
 public class JAXRSConfiguration extends Application {
